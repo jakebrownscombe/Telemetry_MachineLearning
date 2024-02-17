@@ -223,7 +223,7 @@ summary(prpart)
 pred <- predict(prpart, dets, type="class")
 
 library(caret) #useful package for making predictions with all types of these models
-confusionMatrix(pred, dets$pres, positive="1")  
+caret::confusionMatrix(pred, dets$pres, positive="1")  
 #imbalanced predictions, getting presences wrong a lot. That's not even in test data. 
 #will address below under model weighting 
 
