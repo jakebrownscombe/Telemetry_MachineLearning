@@ -83,7 +83,7 @@ ggmap(TOmap, extent='normal')+
              aes(x=lon, y=lat, size=dets, fill=IDcount), col="yellow", pch=21)+
   scale_fill_viridis_c(option="plasma")+
   
-ggplot(dets, aes(day, dets, col=IDcount))+geom_point()+scale_fill_viridis_c(option="plasma")
+ggplot(dets, aes(day, dets, col=IDcount))+geom_point()+scale_color_viridis_c(option="plasma")
 #
 
 
@@ -193,6 +193,7 @@ z <- formula(pres~season+depth+SAV)
 library(rpart)
 rpart <- rpart(formula=z, method="class", control=(minsplit=100), cp=0.0001, data=dets)
 
+
 printcp(rpart) # display the results 
 plotcp(rpart) # visualize cross-validation results 
 summary(rpart) # detailed summary of splits
@@ -287,14 +288,14 @@ Bass.imp <- ggplot(data=Bass.varIMP, aes(x=0, xend=MeanDecreaseAccuracy,
   geom_segment()+
   geom_point(data=Bass.varIMP, aes(MeanDecreaseAccuracy, reorder(predictor, MeanDecreaseAccuracy)),
              pch=21, fill="#00BC59", col="black", size=3)+
-  theme_bw()+xlab("Mean Decrease Accuracy")+ylab("Predictor")+ggtitle("Bass")
+  theme_bw()+xlab("Mean Decrease Accuracy")+ylab("Predictor")+ggtitle("Largemouth Bass Habitat")
 Bass.imp
 
 
 
 #season interactions
 #using iml package here, useful for all sorts of models 
-#this is quite computationally intensive with larger datasets/models 
+#this is computationally intensive with larger datasets/models 
 #https://christophm.github.io/interpretable-ml-book/
 
 preds <- train %>% dplyr::select(exposure, SAV, depth, season) # %>% droplevels()
@@ -455,7 +456,7 @@ rpForest$pval
 
 #original model
 caret::confusionMatrix(RF.train.pred, train$pres)
-#pretty well balanced model, but may way to prioritize 1s more (as eg)
+#pretty well balanced model, but maybe a way to prioritize 1s more (as eg)
 
 table(train$pres)
 length(which(train$pres==1)) / length(which(train$pres==0))
