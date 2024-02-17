@@ -214,7 +214,7 @@ prpart<- prune(rpart, cp=0.0143605)
 
 # plot the pruned tree 
 plot(prpart, uniform=TRUE, 
-     main="Pruned Classification Tree for RAMP")
+     main="Pruned Largemouth Bass Presence/Absence"")
 text(prpart, use.n=TRUE, all=TRUE, cex=.8)
 summary(prpart)
 
