@@ -210,7 +210,7 @@ text(rpart, use.n=TRUE, all=TRUE, cex=.8)
 
 #prune tree
 printcp(rpart) 
-prpart<- prune(rpart, cp=0.0143605)
+prpart<- rpart::prune(rpart, cp=0.0143605)
 
 # plot the pruned tree 
 plot(prpart, uniform=TRUE, 
