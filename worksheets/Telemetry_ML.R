@@ -10,7 +10,7 @@
 #https://github.com/jakebrownscombe/Acoustic_Telemetry
 
 
-
+#Install packages, set global environment ----
 #packages
 packages_to_install <- c("dplyr","tidyr","data.table","ggplot2","ggmap","tmap","patchwork","rpart","partykit",
                          "randomForest","rfPermute","gbm","caret","pdp","iml","raster","sf")
@@ -25,7 +25,7 @@ for (package_name in packages_to_install) {
   library(package_name, character.only = TRUE)
 }
 
-theme_set(theme_classic()) #ggplot theme
+theme_set(theme_classic()) #specify global ggplot theme
 
 
 
@@ -48,12 +48,13 @@ theme_set(theme_classic()) #ggplot theme
 #Telemetry-based spatial–temporal fish habitat models for fishes in an urban freshwater harbour. 
 #Hydrobiologia, 850(8), 1779-1800.
 
-#detections (Largemouth Bass only), and receiver node locations:
+#Load detections (Largemouth Bass only) and receiver node locations:
 dets <- readRDS("data/LMB.dets.rds")
 nodes <- readRDS("data/nodes.rds")
 nodes.sf <- st_as_sf(nodes, coords = c("lon", "lat"), crs = "+proj=longlat +datum=WGS84 +no_defs")
 nodes.sf
 
+#Check data with interactive map plot from 'tmap' package
 tmap_mode('view')
 tm_shape(nodes.sf %>% dplyr::select(depth, dets)) +
   tm_dots(col="depth", size="dets", alpha=0.8) +
@@ -64,14 +65,14 @@ tm_shape(nodes.sf %>% dplyr::select(depth, dets)) +
   tmap_options(basemaps = 'Esri.WorldImagery')
 
 
-#habitat rasters:
+#Load habitat rasters:
 hab.ras <- readRDS("data/habitat.rasters.rds")
 plot(hab.ras) #will use these for continuous spatial prediction below 
 
 
   
   
-#Detection plots 
+#Detection plots with 'ggmap' package
 TOmap <- readRDS("data/TO_satellite.rds")
 ggmap(TOmap, extent='normal')+
   scale_x_continuous(limits=c(min(nodes$lon)-0.01, max(nodes$lon)+0.01))+
@@ -81,10 +82,10 @@ ggmap(TOmap, extent='normal')+
   geom_point(data=dets %>% group_by(node) %>% 
                dplyr::summarise(lat=mean(lat),lon=mean(lon),dets=sum(dets), IDcount=mean(IDcount)), 
              aes(x=lon, y=lat, size=dets, fill=IDcount), col="yellow", pch=21)+
-  scale_fill_viridis_c(option="plasma")+
-  
+  scale_fill_viridis_c(option="plasma")
+#Detections over time  
 ggplot(dets, aes(day, dets, col=IDcount))+geom_point()+scale_color_viridis_c(option="plasma")
-#
+
 
 
 
@@ -107,8 +108,9 @@ train <- dets.sub %>% dplyr::sample_frac(0.7)
 test <- dets.sub[!(dets.sub$nrow %in% train$nrow),]
 
 #plot datasets:
-ggplot(train, aes(day, dets))+geom_point()+
-  geom_point(data=test, aes(day, dets), col="red")
+ggplot()+
+ geom_point(data=train, aes(day, dets))+ #black = train
+ geom_point(data=test, aes(day, dets), col="red") # red=test
 
 
 tmap_mode('view')
@@ -133,6 +135,11 @@ nodes.test <- nodes[!(nodes$Station.Group %in% nodes.train$Station.Group),]
 #grab detections from these nodes:
 train <- dets.sub %>% filter(node %in% nodes.train$Station.Group)
 test<- dets.sub %>% filter(node %in% nodes.test$Station.Group)
+
+#plot datasets:
+ggplot()+
+ geom_point(data=train, aes(day, dets))+ #black = train
+ geom_point(data=test, aes(day, dets), col="red") # red=test
 
 #plot selected
 tm_shape(train %>% group_by(node) %>% summarise(lat=mean(lat), lon=mean(lon)) %>% 
@@ -229,12 +236,12 @@ caret::confusionMatrix(pred, dets$pres, positive="1")
 
   
   
-#Conditional Inference Trees
-library(partykit)
-CIT <- ctree(formula=z, data = dets)
-print(CIT)
-plot(CIT)
-#too complex to be useful in this case, but can be insightful in some datasets. 
+# #Conditional Inference Trees
+# library(partykit)
+# CIT <- ctree(formula=z, data = dets) #PB NOTE: THIS IS CRASHING MY PROJECT
+# print(CIT)
+# plot(CIT)
+# #too complex to be useful in this case, but can be insightful in some datasets. 
 
 
 
@@ -323,7 +330,7 @@ BasspartialSAVseason <- Bass.Forest %>% pdp::partial(pred.var = c("SAV","season"
 Basspartialdepthseason <- Bass.Forest %>% pdp::partial(pred.var = c("depth","season"), prob = TRUE, which.class='1',train=train)
 Basspartialexposureseason <- Bass.Forest %>% pdp::partial(pred.var = c("exposure","season"), prob = TRUE, which.class='1',train=train)
 
-#plot
+#univariate plots 
 Basspartialseason$season <- factor(Basspartialseason$season, levels=c("winter", "spring", "summer", "fall"))
 Bassseason <- ggplot(Basspartialseason, aes(season, yhat))+geom_boxplot(col="#00BC59")+
   ylab(bquote(~hat(y)))+xlab("Season")+theme_bw()+
@@ -342,7 +349,7 @@ Bassdepth <- ggplot(Basspartialdepth, aes(depth, yhat))+geom_smooth(col="#00BC59
   coord_cartesian(ylim=c(0,0.6))
 
 
-#interactions
+#Bivariate interaction plots
 BasspartialSAVseason$season <- factor(BasspartialSAVseason$season, levels=c("winter", "spring", "summer", "fall"))
 BassseasonSAV <- ggplot(BasspartialSAVseason, aes(season, SAV, fill=yhat))+geom_tile()+scale_fill_viridis_c()+
   theme_bw()+labs(fill=bquote(~hat(y)))+ylab("SAV (%)")+xlab("Season")
@@ -355,9 +362,13 @@ Basspartialexposureseason$season <- factor(Basspartialexposureseason$season, lev
 Bassseasonexposure <- ggplot(Basspartialexposureseason, aes(season, exposure, fill=yhat))+geom_tile()+scale_fill_viridis_c()+
   theme_bw()+labs(fill=bquote(~hat(y)))+ylab("Exposure")+xlab("Season")
 
-#all plots
-Bass.imp+Bassint+Bassseason+plot_spacer()+Basssav+BassseasonSAV+Bassdepth+Bassseasondepth+Bassexp+
-  Bassseasonexposure+plot_layout(ncol=2)
+#Display all plots
+Bass.imp+Bassint+
+Bassseason+plot_spacer()+
+Basssav+BassseasonSAV+
+Bassdepth+Bassseasondepth+
+Bassexp+Bassseasonexposure+
+plot_layout(ncol=2)
 
 
 
@@ -440,7 +451,16 @@ rpForest$rf$importance
 rpForest$pval
 #All predictors significant (and strangely the same p value here). 
 
-
+#PB NOTE: CAN ALSO USE 'rfUtilities' package
+# library(rfUtilities)
+# msForest<-rf.modelSel(dplyr::select(train, -pres, -pres.n), 
+#                       train$pres, seed = 1758, imp.scale = "mir") #run model selection
+# msForest <- msForest[["importance"]] %>% #Grab list of good predictors
+#   mutate(predictor=rownames(.)) %>% 
+#   filter(imp >= 0) %>% dplyr::select(predictor) 
+# varlist <- dplyr::select(train, msForest$predictor) #Trim dataset
+# rm(msForest)
+# 
 
 
 
@@ -537,7 +557,7 @@ hab.ras.summer <- rasterFromXYZ(hab.ras.df %>% filter(season=="summer") %>% dply
 
 plot(hab.ras.summer[["pred_prob"]], main="Summer")
 plot(hab.ras.winter[["pred_prob"]], main="Winter")
-#
+
 
 
 
