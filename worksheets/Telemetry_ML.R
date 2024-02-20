@@ -546,7 +546,7 @@ head(hab.ras.df)
 
 
 #predict presence probability with RF model
-hab.ras.df$pred_prob <- predict(Bass.Forest, hab.ras.df, type="prob")[,2] #Probability prediction
+hab.ras.df$pred_prob <- predict(Bass.Forest, hab.ras.df, type="prob")[,2] #Probability prediction (presences)
 hab.ras.df$pred_prob[hab.ras.df$land == 1] <- 0 #Prob of fish on land should be 0
 hab.ras.df$pred_prob[hab.ras.df$land == 0 & hab.ras.df$depth==0 |
                        hab.ras.df$depth<min(train$depth)] <- NA #Outside domain of depth raster
