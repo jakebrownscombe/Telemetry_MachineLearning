@@ -237,11 +237,14 @@ caret::confusionMatrix(pred, dets$pres, positive="1")
   
   
 # #Conditional Inference Trees
-# library(partykit)
-# CIT <- ctree(formula=z, data = dets) #PB NOTE: THIS IS CRASHING MY PROJECT
-# print(CIT)
-# plot(CIT)
-# #too complex to be useful in this case, but can be insightful in some datasets. 
+#using 'partykit'
+train.CIT <- dets.kfold %>% filter(fold==1) #using just 1 fold (10%) of data here 
+CIT <- ctree(formula=z, data = train.CIT, mincriterion = 0.95) #sig splits set at 0.05
+print(CIT)
+plot(CIT)
+#can provide useful insights sometimes. 
+
+
 
 
 
