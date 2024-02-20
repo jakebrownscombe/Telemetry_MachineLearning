@@ -312,8 +312,8 @@ preds <- train %>% dplyr::select(exposure, SAV, depth, season) # %>% droplevels(
 predictor <- Predictor$new(model=Bass.Forest, data=preds, y=train$pres)
 Bassinteract <- iml::Interaction$new(predictor, feature="season") 
 Bassinteract_results <- Bassinteract$results %>% dplyr::rename(H =.interaction) %>% as.data.frame()
-head(Bassinteract_results)
-
+head(Bassinteract_results) #H varies between 0 (none) or 1 (strong interaction)
+ 
 Bassint <- ggplot(data=Bassinteract_results, aes(x=0, xend=H, 
                                                  y=reorder(.feature, H), yend=reorder(.feature, H)))+
   geom_segment()+
@@ -444,7 +444,8 @@ ggplot(Bass.Forest.fit, aes(day, resid))+geom_point()+geom_smooth()+facet_wrap(~
 
 
 #Variable Selection ----
-library(rfPermute) #this can be handy if you have a lot of variables
+#this can be handy if you have a lot of variables
+library(rfPermute) 
 rpForest <- rfPermute(formula = z1, data = train, na.action=na.omit, 
                       replace = FALSE, ntree = 1000, nrep = 100, a = 0.05)
 
@@ -454,16 +455,14 @@ rpForest$rf$importance
 rpForest$pval
 #All predictors significant (and strangely the same p value here). 
 
-#PB NOTE: CAN ALSO USE 'rfUtilities' package
-# library(rfUtilities)
-# msForest<-rf.modelSel(dplyr::select(train, -pres, -pres.n), 
-#                       train$pres, seed = 1758, imp.scale = "mir") #run model selection
-# msForest <- msForest[["importance"]] %>% #Grab list of good predictors
-#   mutate(predictor=rownames(.)) %>% 
-#   filter(imp >= 0) %>% dplyr::select(predictor) 
-# varlist <- dplyr::select(train, msForest$predictor) #Trim dataset
-# rm(msForest)
-# 
+
+
+
+#can also use 'rfUtilities' package
+library(rfUtilities)
+msForest<-rf.modelSel(train %>% dplyr::select(season, SAV, exposure, depth), 
+                       train$pres, seed = 1758, imp.scale = "mir") #run model selection
+msForest #all important here as well
 
 
 
