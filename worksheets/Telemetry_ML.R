@@ -153,8 +153,7 @@ nrow(test)/nrow(train) #not exact split here, may not matter hugely if you have 
 
 #many options for sub-setting to deal with spatial-temporal auto-correlation. For example,
 #could use acf to assess spatial and temporal distances of correlation, and subset sites
-#at least those distances apart. Will not go into this here. 
-
+#at least those distances apart. Will not go into this here, but happy to discuss!
 
 
 
@@ -428,7 +427,7 @@ ggmap(TOmap, extent='normal')+
              aes(lon, lat, fill=resid, size=resid), col="yellow", pch=21)+
   scale_fill_viridis_c(option="plasma")+labs(title="Residuals")+
   
-  plot_layout(ncol=1)
+  plot_layout(ncol=3)
 
 
 #temporal patterns
@@ -530,7 +529,7 @@ ggmap(TOmap, extent='normal')+
              aes(lon, lat, fill=prob, size=prob), col="yellow", pch=21)+
   scale_fill_viridis_c(option="plasma")+labs(title="Fitted Under-Weighted")+
   
-  plot_layout(ncol=1)
+  plot_layout(ncol=3)
 
 
 
