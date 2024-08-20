@@ -1,5 +1,5 @@
 #Machine Learning Applications for Fish Telemetry Data
-#GLATOS 2024
+#GLATOS 2024 & OTN 2024
 
 #Jake Brownscombe & Paul Bzonek
 #contact: jakebrownscombe@gmail.com
@@ -26,7 +26,6 @@ for (package_name in packages_to_install) {
 }
 
 theme_set(theme_classic()) #specify global ggplot theme
-
 
 
 
@@ -453,16 +452,6 @@ rpForest$rf$importance
 #now have p-values for sig of terms:
 rpForest$pval
 #All predictors significant (and strangely the same p value here). 
-
-
-
-
-#can also use 'rfUtilities' package
-library(rfUtilities)
-msForest<-rf.modelSel(train %>% dplyr::select(season, SAV, exposure, depth), 
-                       train$pres, seed = 1758, imp.scale = "mir") #run model selection
-msForest #all important here as well
-
 
 
 
