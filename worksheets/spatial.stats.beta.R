@@ -63,6 +63,12 @@ ggplot(depth.pdp, aes(season, depth,  fill=yhat))+geom_tile()+scale_fill_viridis
   plot_layout(nrow=2)
 
 
+#compare to RF outputs:
+ggplot(depth.pdp, aes(season, depth,  fill=yhat))+geom_tile()+scale_fill_viridis_c()+ggtitle("Mboost")+
+  ggplot(SAV.pdp, aes(season, SAV,  fill=yhat))+geom_tile()+scale_fill_viridis_c()+
+  ggplot(exposure.pdp, aes(season, exposure,  fill=yhat))+geom_tile()+scale_fill_viridis_c()+
+
+Bassseasondepth+ggtitle("Random Forests") + BassseasonSAV + Bassseasonexposure + plot_layout(nrow=2)
 
 
 
