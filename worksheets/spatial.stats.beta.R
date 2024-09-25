@@ -5,6 +5,7 @@
 
 
 
+
 #select similar set of data from the Random Forests in Telemetry_ML.R
 set.seed(1987)
 train <- dets.sub %>% sample_frac(0.1) #using 10% for train here for quick fitting 
@@ -204,5 +205,41 @@ ggplot(depth.pdp.node, aes(season, depth,  fill=yhat))+geom_tile()+scale_fill_vi
   ggplot(SAV.pdp.node, aes(season, SAV,  fill=yhat))+geom_tile()+scale_fill_viridis_c()+
   ggplot(exposure.pdp.node, aes(season, exposure,  fill=yhat))+geom_tile()+scale_fill_viridis_c()+
   plot_layout(nrow=3)
+
+
+
+
+
+#spatial prediction
+
+#some data formatting to get x,y data into prediction dataframe
+hab.ras.sf <- st_as_sf(hab.ras.df, coords = c("x", "y"),  crs = "+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs")
+hab.ras.sf <- st_transform(hab.ras.sf, crs = "+proj=longlat +datum=WGS84 +no_defs")
+hab.ras.df2 <- cbind(st_drop_geometry(hab.ras.sf), st_coordinates(hab.ras.sf))
+hab.ras.df2 <- hab.ras.df2 %>% dplyr::rename(lon=X, lat=Y)
+head(hab.ras.df2)
+
+#predict presence probability with mboost models
+hab.ras.df2$pred_prob_mboost <- predict(gamboost, hab.ras.df2, type="response") 
+hab.ras.df2$pred_prob_mboost.spatial <- predict(gamboost.spatial, hab.ras.df2, type="response")
+hab.ras.df2$pred_prob_mboost.node <- predict(gamboost.node, hab.ras.df2, type="response")
+
+#convert back to raster for basic plotting
+hab.ras.df2$x <- hab.ras.df$x
+hab.ras.df2$y <- hab.ras.df$y
+
+hab.ras.mboost.winter <- rasterFromXYZ(hab.ras.df2 %>% filter(season=="winter") %>% 
+                                         dplyr::select(x,y, pred_prob, pred_prob_mboost, pred_prob_mboost.spatial))
+hab.ras.mboost.summer <- rasterFromXYZ(hab.ras.df2 %>% filter(season=="summer") %>% 
+                                         dplyr::select(x,y,pred_prob,pred_prob_mboost, pred_prob_mboost.spatial))                                  
+
+par(mfrow = c(3, 2))
+plot(hab.ras.mboost.winter[["pred_prob"]], main="random forests - Winter")
+plot(hab.ras.mboost.summer[["pred_prob"]], main="random forests - Summer")
+plot(hab.ras.mboost.winter[["pred_prob_mboost"]], main="mboost - Winter")
+plot(hab.ras.mboost.summer[["pred_prob_mboost"]], main="mboost - Summer")
+plot(hab.ras.mboost.winter[["pred_prob_mboost.spatial"]], main="mboost Spatial - Winter")
+plot(hab.ras.mboost.summer[["pred_prob_mboost.spatial"]], main="mboost Spatial - Summer")
+dev.off()
 
 
