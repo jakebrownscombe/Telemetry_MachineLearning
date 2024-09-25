@@ -537,22 +537,25 @@ head(hab.ras.df)
 hab.ras.df$pred_prob <- predict(Bass.Forest, hab.ras.df, type="prob")[,2] #Probability prediction (presences)
 hab.ras.df$pred_prob[hab.ras.df$land == 1] <- 0 #Prob of fish on land should be 0
 hab.ras.df$pred_prob[hab.ras.df$land == 0 & hab.ras.df$depth==0 |
-                       hab.ras.df$depth<min(train$depth)] <- NA #Outside domain of depth raster
+                       hab.ras.df$depth<min(train$depth)-5 | hab.ras.df$pred_prob<0.05] <- NA #Outside domain of depth raster
 
 
-#convert back to raster for basic plotting
-
-hab.ras.winter <- rasterFromXYZ(hab.ras.df %>% filter(season=="winter") %>% dplyr::select(-season)) 
-hab.ras.summer <- rasterFromXYZ(hab.ras.df %>% filter(season=="summer") %>% dplyr::select(-season)) 
-
-plot(hab.ras.summer[["pred_prob"]], main="Summer")
-plot(hab.ras.winter[["pred_prob"]], main="Winter")
-
+#convert back to raster for plotting
+head(hab.ras.df)
+hab.ras.winter <- rasterFromXYZ(hab.ras.df %>% filter(season=="winter") %>% 
+                                  dplyr::select(-season), crs = "+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs")
+hab.ras.summer <- rasterFromXYZ(hab.ras.df %>% filter(season=="summer") %>% 
+                                  dplyr::select(-season), crs = "+proj=utm +zone=17 +datum=NAD83 +units=m +no_defs") 
 
 
-
-
-
+tmap_mode('view')
+#summer
+tm_shape(hab.ras.summer[["pred_prob"]]) +
+  tm_raster(n=10)
+#winter
+tm_shape(hab.ras.winter[["pred_prob"]]) +
+  tm_raster(n=10)
+#
 
 
 
