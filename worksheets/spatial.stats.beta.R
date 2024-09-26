@@ -1,7 +1,7 @@
 #Integrating spatial and random effects into machine learning protocols
 #beta version
 
-#Jake Brownscombe, Sept 2023
+#Jake Brownscombe, Sept 2024
 
 
 
